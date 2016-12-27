@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 engine = create_engine('postgresql://ubuntu:thinkful@localhost:5432/tbay')
@@ -9,7 +10,7 @@ Base = declarative_base()
 
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime 
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey 
 
 class Item(Base):
         __tablename__ = "items"
@@ -19,18 +20,29 @@ class Item(Base):
         description = Column(String)
         start_time = Column(DateTime, default=datetime.utcnow)
         
+        owner_id = Column (Integer, ForeignKey('users.id'), nullable=False) 
+        auction_items = relationship("Bid", backref = "auction_items")
+        
+        
+        
 class User(Base):
         __tablename__ = "users"
         
         id = Column(Integer, primary_key=True)
         username = Column(String, nullable=False)
         password = Column(String, nullable=False)
+        
+        items = relationship("Item", backref="seller")
+        bids = relationship("Bid", backref = "bids")    
 
 class Bid(Base):
         __tablename__ = "bids"
         
         id = Column(Integer, primary_key=True)
-        price = Column(FloatingPointError, nullable=False)
+        price = Column(Float, nullable=False)
     
+        bidder_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+        item_id = Column(Integer, ForeignKey('items.id'), nullable=False)
+
 
 Base.metadata.create_all(engine)
